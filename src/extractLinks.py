@@ -5,9 +5,10 @@ from progress.bar import Bar
 import click
 from pyfs import isFile, resolvePath
 from io import TextIOWrapper
+from pandas import DataFrame
 
-def extractURLs(soup: BeautifulSoup) -> dict[str, str]:
-    data: dict[str, str] = {}
+def extractURLs(soup: BeautifulSoup) -> dict[str, List[str]]:
+    data: dict[str, List[str]] = {"name": [], "url": []}
 
     urls: ResultSet = soup.find_all(name="a")
     urlCount: int = len(urls)
@@ -15,7 +16,8 @@ def extractURLs(soup: BeautifulSoup) -> dict[str, str]:
     with Bar("Extracting URLs from Awesome List...", max=urlCount) as bar:
         url: Tag
         for url in urls:
-            data[url.text.replace("\n", " ").strip()] = url.get(key="href")
+            data["name"].append(url.text.replace("\n", " ").strip())
+            data["url"].append(url.get(key="href"))
             bar.next()
 
     return data
@@ -29,8 +31,17 @@ def extractURLs(soup: BeautifulSoup) -> dict[str, str]:
     required=True,
     help="Path to Awesome List in HTML file",
     )
-def main(inputPath: Path)  ->  None:
+@click.option(
+        "-o",
+        "--output",
+        "outputPath",
+        type=Path,
+        required=True,
+        help="Path to save pickled pandas.DataFrame of relevant URLs",
+        )
+def main(inputPath: Path, outputPath: Path)  ->  None:
     absInputPath: Path = resolvePath(path=inputPath)
+    absOutputPath: Path = resolvePath(path=outputPath)
 
     assert isFile(path=absInputPath)
 
@@ -38,7 +49,10 @@ def main(inputPath: Path)  ->  None:
     
     soup: BeautifulSoup = BeautifulSoup(markup=htmlFile, features="lxml")
 
-    data: dict[str, str] = extractURLs(soup=soup)
+    data: dict[str, List[str]] = extractURLs(soup=soup)
+
+    df: DataFrame = DataFrame(data=data)
+    df.to_pickle(path=absOutputPath)
 
 
 if __name__ == "__main__":
