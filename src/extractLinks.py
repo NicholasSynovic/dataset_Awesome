@@ -1,11 +1,13 @@
-from bs4 import BeautifulSoup, ResultSet, Tag
-from typing import List
-from pathlib import Path
-from progress.bar import Bar
-import click
-from pyfs import isFile, resolvePath
 from io import TextIOWrapper
+from pathlib import Path
+from typing import List
+
+import click
+from bs4 import BeautifulSoup, ResultSet, Tag
 from pandas import DataFrame
+from progress.bar import Bar
+from pyfs import isFile, resolvePath
+
 
 def extractURLs(soup: BeautifulSoup) -> dict[str, List[str]]:
     data: dict[str, List[str]] = {"name": [], "url": []}
@@ -22,6 +24,7 @@ def extractURLs(soup: BeautifulSoup) -> dict[str, List[str]]:
 
     return data
 
+
 @click.command()
 @click.option(
     "-i",
@@ -30,23 +33,23 @@ def extractURLs(soup: BeautifulSoup) -> dict[str, List[str]]:
     type=Path,
     required=True,
     help="Path to Awesome List in HTML file",
-    )
+)
 @click.option(
-        "-o",
-        "--output",
-        "outputPath",
-        type=Path,
-        required=True,
-        help="Path to save pickled pandas.DataFrame of relevant URLs",
-        )
-def main(inputPath: Path, outputPath: Path)  ->  None:
+    "-o",
+    "--output",
+    "outputPath",
+    type=Path,
+    required=True,
+    help="Path to save pickled pandas.DataFrame of relevant URLs",
+)
+def main(inputPath: Path, outputPath: Path) -> None:
     absInputPath: Path = resolvePath(path=inputPath)
     absOutputPath: Path = resolvePath(path=outputPath)
 
     assert isFile(path=absInputPath)
 
     htmlFile: TextIOWrapper = open(file=absInputPath, mode="r")
-    
+
     soup: BeautifulSoup = BeautifulSoup(markup=htmlFile, features="lxml")
 
     data: dict[str, List[str]] = extractURLs(soup=soup)

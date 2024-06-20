@@ -13,6 +13,7 @@ click = "^8.1.7"
 pyfs = {git = "https://github.com/NicholasSynovic/python-fs-utils"}
 lxml = "^5.2.2"
 pandas = "^2.2.2"
+sqlalchemy = "^2.0.31"
 
 
 [build-system]
